@@ -221,20 +221,50 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
 
     pub fn keys(&mut self) -> Iter<KEY> {
         self.test.clear();
-        SymbolTable::build_recursive(&mut self.test, self.root.as_ref());
+
+        let min_key = self.min();
+        let max_key = self.max();
+
+        if min_key.is_none() || max_key.is_none() {
+            return self.test.iter();
+        }
+
+        let min_key = min_key.unwrap();
+        let max_key = max_key.unwrap();
+
+        SymbolTable::keys_node(&mut self.test, self.root.as_ref(), &min_key, &max_key);
         return self.test.iter();
     }
 
-    fn build_recursive(result: &mut Vec<KEY>, node: Option<&Node<KEY, VALUE>>) {
+    pub fn keys_in_range(&mut self, min_key: &KEY, max_key: &KEY) -> Iter<KEY> {
+        self.test.clear();
+        SymbolTable::keys_node(&mut self.test, self.root.as_ref(), &min_key, &max_key);
+        return self.test.iter();
+    }
+
+    fn keys_node(
+        result: &mut Vec<KEY>,
+        node: Option<&Node<KEY, VALUE>>,
+        min_key: &KEY,
+        max_key: &KEY,
+    ) {
         if node.is_none() {
             return;
         }
 
         let node = node.as_ref().unwrap();
 
-        SymbolTable::build_recursive(result, node.left.deref().as_ref());
-        result.push(node.key.clone());
-        SymbolTable::build_recursive(result, node.right.deref().as_ref());
+        if &node.key > min_key {
+            SymbolTable::keys_node(result, node.left.deref().as_ref(), min_key, max_key);
+        }
+
+        if &node.key >= min_key && &node.key <= max_key {
+            result.push(node.key.clone());
+        }
+
+        if &node.key < max_key {
+            SymbolTable::keys_node(result, node.right.deref().as_ref(), min_key, max_key);
+        }
     }
 }
 
@@ -268,6 +298,32 @@ mod tests {
         assert_eq!(iter.next(), Some(&String::from("R")));
         assert_eq!(iter.next(), Some(&String::from("S")));
         assert_eq!(iter.next(), Some(&String::from("X")));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn symbol_table_iterate_keys_ordered_between_range() {
+        // arrange
+        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let keys = "S E A R C H E X A M P L E".split(" ");
+
+        // act
+        for (position, key) in keys.enumerate() {
+            st.put(String::from(key), format!("{}", position));
+        }
+
+        // assert
+        assert!(!st.is_empty());
+        assert_eq!(st.size(), 10);
+
+        let iter = &mut st.keys_in_range(&String::from("D"), &String::from("R"));
+        assert_eq!(iter.next(), Some(&String::from("E")));
+        assert_eq!(iter.next(), Some(&String::from("H")));
+        assert_eq!(iter.next(), Some(&String::from("L")));
+        assert_eq!(iter.next(), Some(&String::from("M")));
+        assert_eq!(iter.next(), Some(&String::from("P")));
+        assert_eq!(iter.next(), Some(&String::from("R")));
+        assert_eq!(iter.next(), None);
     }
 
     #[test]
