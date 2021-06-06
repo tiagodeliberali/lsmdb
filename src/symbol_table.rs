@@ -197,6 +197,28 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         }
     }
 
+    pub fn rank(&self, key: KEY) -> Option<usize> {
+        SymbolTable::rank_node(&self.root, key, 0)
+    }
+
+    fn rank_node(node: &Option<Node<KEY, VALUE>>, key: KEY, position: usize) -> Option<usize> {
+        if node.is_none() {
+            return None;
+        }
+
+        let node = node.as_ref().unwrap();
+
+        let left_count = SymbolTable::get_size(&node.left);
+
+        match key.cmp(&node.key) {
+            std::cmp::Ordering::Less => SymbolTable::rank_node(node.left.deref(), key, position),
+            std::cmp::Ordering::Greater => {
+                SymbolTable::rank_node(node.right.deref(), key, position + left_count + 1)
+            }
+            std::cmp::Ordering::Equal => Some(position + left_count),
+        }
+    }
+
     pub fn keys(&mut self) -> Iter<KEY> {
         self.test.clear();
         SymbolTable::build_recursive(&mut self.test, self.root.as_ref());
@@ -291,6 +313,24 @@ mod tests {
         assert_eq!(st.select(3), Some(String::from("H")));
         assert_eq!(st.select(8), Some(String::from("S")));
         assert_eq!(st.select(10), None);
+    }
+
+    #[test]
+    fn find_position_by_keys() {
+        // arrange
+        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let keys = "S E A R C H E X A M P L E".split(" ");
+
+        // act
+        for (position, key) in keys.enumerate() {
+            st.put(String::from(key), format!("{}", position));
+        }
+
+        // assert
+        assert_eq!(st.rank(String::from("A")), Some(0));
+        assert_eq!(st.rank(String::from("H")), Some(3));
+        assert_eq!(st.rank(String::from("S")), Some(8));
+        assert_eq!(st.rank(String::from("G")), None);
     }
 
     #[test]
