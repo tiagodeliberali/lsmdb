@@ -1,6 +1,6 @@
 use std::{ops::Deref, slice::Iter, usize};
 
-struct Node<KEY: Ord, VALUE: Clone> {
+pub struct Node<KEY: Ord, VALUE: Clone> {
     pub key: KEY,
     pub value: VALUE,
     pub size: usize,
@@ -20,7 +20,7 @@ impl<KEY: Ord, VALUE: Clone> Node<KEY, VALUE> {
     }
 }
 
-struct SymbolTable<KEY: Ord + Clone, VALUE: Clone> {
+pub struct SymbolTable<KEY: Ord + Clone, VALUE: Clone> {
     root: Option<Node<KEY, VALUE>>,
     pub test: Vec<KEY>,
 }
