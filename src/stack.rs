@@ -14,7 +14,7 @@ impl<T> StackNode<T> {
     }
 }
 
-struct Stack<T> {
+pub struct Stack<T> {
     root: Option<StackNode<T>>,
 }
 
