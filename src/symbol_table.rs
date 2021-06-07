@@ -267,9 +267,14 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         }
     }
     // don't take this too seriously
-    pub fn draw_node(node: &Option<Node<String, VALUE>>, position: usize, level: usize, result: &mut Vec<String>) {
+    pub fn draw_node(
+        node: &Option<Node<String, VALUE>>,
+        position: usize,
+        level: usize,
+        result: &mut Vec<String>,
+    ) {
         if node.is_none() {
-            return ;
+            return;
         }
 
         let node = node.as_ref().unwrap();
@@ -277,7 +282,12 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         let padding = width * position + width / 2;
 
         if result.len() <= level {
-            result.push(format!("|{:>width$}({})", node.key, node.size, width = padding));
+            result.push(format!(
+                "|{:>width$}({})",
+                node.key,
+                node.size,
+                width = padding
+            ));
         } else {
             let value = result.get(level).unwrap().to_owned();
             let new_value = format!("|{:>width$}({})", node.key, node.size, width = padding);
@@ -305,7 +315,12 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         }
 
         SymbolTable::<String, VALUE>::draw_node(node.left.deref(), position * 2, level + 1, result);
-        SymbolTable::<String, VALUE>::draw_node(node.right.deref(), position * 2 + 1, level + 1, result);
+        SymbolTable::<String, VALUE>::draw_node(
+            node.right.deref(),
+            position * 2 + 1,
+            level + 1,
+            result,
+        );
     }
 }
 

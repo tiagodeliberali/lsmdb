@@ -15,14 +15,14 @@ fn main() {
     let reader = BufReader::new(file);
     let st = &mut SymbolTable::<String, String>::new::<String, String>();
     let mut count: u64 = 0;
-    
+
     for line in reader.lines() {
         for word in line.unwrap().split(" ") {
             st.put(String::from(word), String::from(word));
             count += 1;
         }
     }
-    
+
     let elapsed = now.elapsed();
     println!("Elapsed load file to symbol table: {:.2?}", elapsed);
     println!("count words: {:.2?}", count);
