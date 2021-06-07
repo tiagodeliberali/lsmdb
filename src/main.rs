@@ -3,7 +3,7 @@ mod symbol_table;
 
 use crate::symbol_table::SymbolTable;
 use std::fs::File;
-use std::io::{self, prelude::*, BufReader};
+use std::io::{prelude::*, BufReader};
 
 fn main() {
     println!("let's build a tree!");

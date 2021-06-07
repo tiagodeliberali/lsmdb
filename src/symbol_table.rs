@@ -1,4 +1,4 @@
-use std::{cmp::max, ops::Deref, slice::Iter, usize};
+use std::{ops::Deref, slice::Iter, usize};
 
 pub struct Node<KEY: Ord, VALUE: Clone> {
     pub key: KEY,
@@ -94,7 +94,7 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         self.get(key).is_some()
     }
 
-    pub fn delete(&mut self, key: KEY) {
+    pub fn delete(&mut self, _key: KEY) {
         // missing implementation
     }
 
