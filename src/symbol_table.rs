@@ -1,4 +1,4 @@
-use std::{ops::Deref, slice::Iter, usize};
+use std::{cmp::max, ops::Deref, slice::Iter, usize};
 
 pub struct Node<KEY: Ord, VALUE: Clone> {
     pub key: KEY,
@@ -266,11 +266,75 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
             SymbolTable::keys_node(result, node.right.deref().as_ref(), min_key, max_key);
         }
     }
+
+    pub fn draw_node(node: &Option<Node<String, VALUE>>, position: usize, level: usize, result: &mut Vec<String>) {
+        if node.is_none() {
+            return ;
+        }
+
+        let node = node.as_ref().unwrap();
+        let width = 200 / (2 as usize).pow(level as u32);
+        let padding = width * position + width / 2;
+
+        if result.len() <= level {
+            result.push(format!("|{:>width$}({})", node.key, node.size, width = padding));
+        } else {
+            let value = result.get(level).unwrap().to_owned();
+            let new_value = format!("|{:>width$}({})", node.key, node.size, width = padding);
+
+            let size = usize::max(value.len(), new_value.len());
+
+            let mut text = String::new();
+
+            for i in 0..size {
+                if let Some(v) = value.chars().nth(i) {
+                    if v != ' ' {
+                        text = format!("{}{}", text, value.chars().nth(i).unwrap());
+                        continue;
+                    }
+                }
+                if let Some(v) = new_value.chars().nth(i) {
+                    if v != ' ' {
+                        text = format!("{}{}", text, new_value.chars().nth(i).unwrap());
+                        continue;
+                    }
+                }
+                text = format!("{} ", text);
+            }
+            result[level] = text;
+        }
+
+        SymbolTable::<String, VALUE>::draw_node(node.left.deref(), position * 2, level + 1, result);
+        SymbolTable::<String, VALUE>::draw_node(node.right.deref(), position * 2 + 1, level + 1, result);
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn draw_tree() {
+        // arrange
+        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let keys = "S E A R C H E X A M P L E".split(" ");
+
+        for (position, key) in keys.enumerate() {
+            st.put(String::from(key), format!("{}", position));
+        }
+
+        // act
+        let result = &mut Vec::new();
+        SymbolTable::<String, String>::draw_node(&st.root, 0, 0, result);
+
+        // assert
+        assert_eq!(result.len(), 6);
+
+        // print tree
+        for line in result {
+            println!("{}", line);
+        }
+    }
 
     #[test]
     fn symbol_table_iterate_keys_ordered() {
