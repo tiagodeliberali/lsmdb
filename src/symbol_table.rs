@@ -266,6 +266,7 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
             SymbolTable::keys_node(result, node.right.deref().as_ref(), min_key, max_key);
         }
     }
+
     // don't take this too seriously
     pub fn draw_node(
         node: &Option<Node<String, VALUE>>,
