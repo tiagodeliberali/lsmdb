@@ -22,15 +22,11 @@ impl<KEY: Ord, VALUE: Clone> Node<KEY, VALUE> {
 
 pub struct BST<KEY: Ord + Clone, VALUE: Clone> {
     root: Option<Node<KEY, VALUE>>,
-    pub test: Vec<KEY>,
 }
 
 impl<KEY: Ord + Clone, VALUE: Clone> BST<KEY, VALUE> {
     pub fn new<A: Ord + Clone, B: Clone>() -> BST<A, B> {
-        BST {
-            root: None,
-            test: Vec::new(),
-        }
+        BST { root: None }
     }
 
     pub fn put(&mut self, key: KEY, value: VALUE) {
@@ -219,27 +215,27 @@ impl<KEY: Ord + Clone, VALUE: Clone> BST<KEY, VALUE> {
         }
     }
 
-    pub fn keys(&mut self) -> Iter<KEY> {
-        self.test.clear();
+    pub fn keys(&self) -> Vec<KEY> {
+        let mut keys = Vec::new();
 
         let min_key = self.min();
         let max_key = self.max();
 
         if min_key.is_none() || max_key.is_none() {
-            return self.test.iter();
+            return keys;
         }
 
         let min_key = min_key.unwrap();
         let max_key = max_key.unwrap();
 
-        BST::keys_node(&mut self.test, self.root.as_ref(), &min_key, &max_key);
-        return self.test.iter();
+        BST::keys_node(&mut keys, self.root.as_ref(), &min_key, &max_key);
+        return keys;
     }
 
-    pub fn keys_in_range(&mut self, min_key: &KEY, max_key: &KEY) -> Iter<KEY> {
-        self.test.clear();
-        BST::keys_node(&mut self.test, self.root.as_ref(), &min_key, &max_key);
-        return self.test.iter();
+    pub fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<KEY> {
+        let mut keys = Vec::new();
+        BST::keys_node(&mut keys, self.root.as_ref(), &min_key, &max_key);
+        return keys;
     }
 
     fn keys_node(
@@ -385,7 +381,8 @@ mod tests {
         assert!(!st.is_empty());
         assert_eq!(st.size(), 10);
 
-        let iter = &mut st.keys();
+        let keys = st.keys();
+        let mut iter = keys.iter();
         assert_eq!(iter.next(), Some(&String::from("A")));
         assert_eq!(iter.next(), Some(&String::from("C")));
         assert_eq!(iter.next(), Some(&String::from("E")));
@@ -414,7 +411,8 @@ mod tests {
         assert!(!st.is_empty());
         assert_eq!(st.size(), 10);
 
-        let iter = &mut st.keys_in_range(&String::from("D"), &String::from("R"));
+        let keys = st.keys_in_range(&String::from("D"), &String::from("R"));
+        let mut iter = keys.iter();
         assert_eq!(iter.next(), Some(&String::from("E")));
         assert_eq!(iter.next(), Some(&String::from("H")));
         assert_eq!(iter.next(), Some(&String::from("L")));
