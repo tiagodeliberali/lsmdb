@@ -1,8 +1,4 @@
-use std::{
-    ops::{Deref, DerefMut},
-    slice::Iter,
-    usize,
-};
+use std::{ops::Deref, slice::Iter, usize};
 
 pub struct Node<KEY: Ord, VALUE: Clone> {
     pub key: KEY,
@@ -10,136 +6,52 @@ pub struct Node<KEY: Ord, VALUE: Clone> {
     pub size: usize,
     pub left: Box<Option<Node<KEY, VALUE>>>,
     pub right: Box<Option<Node<KEY, VALUE>>>,
-    pub is_red: bool,
 }
 
 impl<KEY: Ord, VALUE: Clone> Node<KEY, VALUE> {
-    pub fn new<A: Ord, B: Clone>(key: A, value: B, size: usize, is_red: bool) -> Node<A, B> {
+    pub fn new<A: Ord, B: Clone>(key: A, value: B, size: usize) -> Node<A, B> {
         Node {
             key,
             value,
             size,
             left: Box::new(None),
             right: Box::new(None),
-            is_red,
         }
     }
 }
 
-pub struct SymbolTable<KEY: Ord + Clone, VALUE: Clone> {
+pub struct BST<KEY: Ord + Clone, VALUE: Clone> {
     root: Option<Node<KEY, VALUE>>,
     pub test: Vec<KEY>,
 }
 
-impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
-    pub fn new<A: Ord + Clone, B: Clone>() -> SymbolTable<A, B> {
-        SymbolTable {
+impl<KEY: Ord + Clone, VALUE: Clone> BST<KEY, VALUE> {
+    pub fn new<A: Ord + Clone, B: Clone>() -> BST<A, B> {
+        BST {
             root: None,
             test: Vec::new(),
         }
     }
 
-    fn is_red(node: &Option<Node<KEY, VALUE>>) -> bool {
-        if let Some(v) = node {
-            v.is_red
-        } else {
-            false
-        }
-    }
-
-    fn flip_colors(h: &mut Node<KEY, VALUE>) {
-        h.is_red = true;
-
-        if let Some(h_left) = h.left.deref_mut() {
-            h_left.is_red = false;
-        }
-
-        if let Some(h_right) = h.right.deref_mut() {
-            h_right.is_red = false;
-        }
-    }
-
-    fn rotate_left(mut h: Node<KEY, VALUE>) -> Node<KEY, VALUE> {
-        let mut x = h.right.take().unwrap();
-
-        let x_left = x.left.take();
-
-        if let Some(x_left_value) = x_left {
-            h.right.replace(x_left_value);
-        }
-
-        x.is_red = h.is_red;
-        h.is_red = true;
-
-        x.size = h.size;
-        h.size = SymbolTable::get_size(&h.left) + SymbolTable::get_size(&h.right) + 1;
-
-        x.left.replace(h);
-        return x;
-    }
-
-    fn rotate_right(mut h: Node<KEY, VALUE>) -> Node<KEY, VALUE> {
-        let mut x = h.left.take().unwrap();
-
-        let x_right = x.right.take();
-
-        if let Some(x_right_value) = x_right {
-            h.left.replace(x_right_value);
-        }
-
-        x.is_red = h.is_red;
-        h.is_red = true;
-
-        x.size = h.size;
-
-        h.size = SymbolTable::get_size(&h.left) + SymbolTable::get_size(&h.right) + 1;
-
-        x.right.replace(h);
-        return x;
-    }
-
     pub fn put(&mut self, key: KEY, value: VALUE) {
-        SymbolTable::put_node(&mut self.root, key, value);
-
-        // root is always black
-        if let Some(node) = &mut self.root {
-            node.is_red = false;
-        }
+        BST::put_node(&mut self.root, key, value);
     }
 
-    fn put_node(option_node: &mut Option<Node<KEY, VALUE>>, key: KEY, value: VALUE) {
-        if option_node.is_none() {
-            option_node.replace(Node::<KEY, VALUE>::new(key, value, 1, true));
+    fn put_node(node: &mut Option<Node<KEY, VALUE>>, key: KEY, value: VALUE) {
+        if node.is_none() {
+            node.replace(Node::<KEY, VALUE>::new(key, value, 1));
             return;
         }
 
-        let mut node = option_node.take().unwrap();
+        let node = node.as_mut().unwrap();
 
         match key.cmp(&node.key) {
-            std::cmp::Ordering::Less => SymbolTable::put_node(&mut node.left, key, value),
-            std::cmp::Ordering::Greater => SymbolTable::put_node(&mut node.right, key, value),
+            std::cmp::Ordering::Less => BST::put_node(&mut node.left, key, value),
+            std::cmp::Ordering::Greater => BST::put_node(&mut node.right, key, value),
             std::cmp::Ordering::Equal => node.value = value,
         }
 
-        if SymbolTable::is_red(&node.right) && !SymbolTable::is_red(&node.left) {
-            node = SymbolTable::rotate_left(node);
-        }
-
-        if SymbolTable::is_red(&node.left) {
-            if let Some(left_node) = node.left.deref() {
-                if SymbolTable::is_red(&left_node.left) {
-                    node = SymbolTable::rotate_right(node);
-                }
-            }
-        }
-
-        if SymbolTable::is_red(&node.right) && SymbolTable::is_red(&node.left) {
-            SymbolTable::flip_colors(&mut node);
-        }
-
-        node.size = SymbolTable::get_size(&node.left) + SymbolTable::get_size(&node.right) + 1;
-
-        option_node.replace(node);
+        node.size = BST::get_size(&node.left) + BST::get_size(&node.right) + 1;
     }
 
     fn get_size(node: &Box<Option<Node<KEY, VALUE>>>) -> usize {
@@ -161,7 +73,7 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
     }
 
     pub fn get(&self, key: &KEY) -> Option<VALUE> {
-        SymbolTable::get_node(&self.root, key)
+        BST::get_node(&self.root, key)
     }
 
     fn get_node(node: &Option<Node<KEY, VALUE>>, key: &KEY) -> Option<VALUE> {
@@ -172,8 +84,8 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         let node = node.as_ref().unwrap();
 
         match key.cmp(&node.key) {
-            std::cmp::Ordering::Less => SymbolTable::get_node(node.left.deref(), key),
-            std::cmp::Ordering::Greater => SymbolTable::get_node(node.right.deref(), key),
+            std::cmp::Ordering::Less => BST::get_node(node.left.deref(), key),
+            std::cmp::Ordering::Greater => BST::get_node(node.right.deref(), key),
             std::cmp::Ordering::Equal => Some(node.value.clone()),
         }
     }
@@ -187,7 +99,7 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
     }
 
     pub fn min(&self) -> Option<KEY> {
-        SymbolTable::min_node(&self.root)
+        BST::min_node(&self.root)
     }
 
     fn min_node(node: &Option<Node<KEY, VALUE>>) -> Option<KEY> {
@@ -201,11 +113,11 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
             return Some(node.key.clone());
         }
 
-        SymbolTable::min_node(&node.left)
+        BST::min_node(&node.left)
     }
 
     pub fn max(&self) -> Option<KEY> {
-        SymbolTable::max_node(&self.root)
+        BST::max_node(&self.root)
     }
 
     fn max_node(node: &Option<Node<KEY, VALUE>>) -> Option<KEY> {
@@ -219,11 +131,11 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
             return Some(node.key.clone());
         }
 
-        SymbolTable::max_node(&node.right)
+        BST::max_node(&node.right)
     }
 
     pub fn floor(&self, key: KEY) -> Option<KEY> {
-        SymbolTable::floor_node(&self.root, key)
+        BST::floor_node(&self.root, key)
     }
 
     pub fn floor_node(node: &Option<Node<KEY, VALUE>>, key: KEY) -> Option<KEY> {
@@ -234,8 +146,8 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         let node = node.as_ref().unwrap();
 
         match key.cmp(&node.key) {
-            std::cmp::Ordering::Less => SymbolTable::floor_node(node.left.deref(), key),
-            std::cmp::Ordering::Greater => match SymbolTable::floor_node(node.right.deref(), key) {
+            std::cmp::Ordering::Less => BST::floor_node(node.left.deref(), key),
+            std::cmp::Ordering::Greater => match BST::floor_node(node.right.deref(), key) {
                 Some(v) => Some(v),
                 None => Some(node.key.clone()),
             },
@@ -244,7 +156,7 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
     }
 
     pub fn ceiling(&self, key: KEY) -> Option<KEY> {
-        SymbolTable::ceiling_node(&self.root, key)
+        BST::ceiling_node(&self.root, key)
     }
 
     pub fn ceiling_node(node: &Option<Node<KEY, VALUE>>, key: KEY) -> Option<KEY> {
@@ -255,11 +167,11 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         let node = node.as_ref().unwrap();
 
         match key.cmp(&node.key) {
-            std::cmp::Ordering::Less => match SymbolTable::ceiling_node(node.left.deref(), key) {
+            std::cmp::Ordering::Less => match BST::ceiling_node(node.left.deref(), key) {
                 Some(v) => Some(v),
                 None => Some(node.key.clone()),
             },
-            std::cmp::Ordering::Greater => SymbolTable::ceiling_node(node.right.deref(), key),
+            std::cmp::Ordering::Greater => BST::ceiling_node(node.right.deref(), key),
             std::cmp::Ordering::Equal => Some(node.key.clone()),
         }
     }
@@ -269,24 +181,24 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
             return None;
         }
 
-        SymbolTable::select_node(&self.root, position)
+        BST::select_node(&self.root, position)
     }
 
     fn select_node(node: &Option<Node<KEY, VALUE>>, position: usize) -> Option<KEY> {
         let node = node.as_ref().unwrap();
-        let left_count = SymbolTable::get_size(&node.left);
+        let left_count = BST::get_size(&node.left);
 
         match position.cmp(&left_count) {
-            std::cmp::Ordering::Less => SymbolTable::select_node(node.left.deref(), position),
+            std::cmp::Ordering::Less => BST::select_node(node.left.deref(), position),
             std::cmp::Ordering::Greater => {
-                SymbolTable::select_node(node.right.deref(), position - left_count - 1)
+                BST::select_node(node.right.deref(), position - left_count - 1)
             }
             std::cmp::Ordering::Equal => Some(node.key.clone()),
         }
     }
 
     pub fn rank(&self, key: KEY) -> Option<usize> {
-        SymbolTable::rank_node(&self.root, key, 0)
+        BST::rank_node(&self.root, key, 0)
     }
 
     fn rank_node(node: &Option<Node<KEY, VALUE>>, key: KEY, position: usize) -> Option<usize> {
@@ -296,12 +208,12 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
 
         let node = node.as_ref().unwrap();
 
-        let left_count = SymbolTable::get_size(&node.left);
+        let left_count = BST::get_size(&node.left);
 
         match key.cmp(&node.key) {
-            std::cmp::Ordering::Less => SymbolTable::rank_node(node.left.deref(), key, position),
+            std::cmp::Ordering::Less => BST::rank_node(node.left.deref(), key, position),
             std::cmp::Ordering::Greater => {
-                SymbolTable::rank_node(node.right.deref(), key, position + left_count + 1)
+                BST::rank_node(node.right.deref(), key, position + left_count + 1)
             }
             std::cmp::Ordering::Equal => Some(position + left_count),
         }
@@ -320,13 +232,13 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         let min_key = min_key.unwrap();
         let max_key = max_key.unwrap();
 
-        SymbolTable::keys_node(&mut self.test, self.root.as_ref(), &min_key, &max_key);
+        BST::keys_node(&mut self.test, self.root.as_ref(), &min_key, &max_key);
         return self.test.iter();
     }
 
     pub fn keys_in_range(&mut self, min_key: &KEY, max_key: &KEY) -> Iter<KEY> {
         self.test.clear();
-        SymbolTable::keys_node(&mut self.test, self.root.as_ref(), &min_key, &max_key);
+        BST::keys_node(&mut self.test, self.root.as_ref(), &min_key, &max_key);
         return self.test.iter();
     }
 
@@ -343,7 +255,7 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         let node = node.as_ref().unwrap();
 
         if &node.key > min_key {
-            SymbolTable::keys_node(result, node.left.deref().as_ref(), min_key, max_key);
+            BST::keys_node(result, node.left.deref().as_ref(), min_key, max_key);
         }
 
         if &node.key >= min_key && &node.key <= max_key {
@@ -351,7 +263,7 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
         }
 
         if &node.key < max_key {
-            SymbolTable::keys_node(result, node.right.deref().as_ref(), min_key, max_key);
+            BST::keys_node(result, node.right.deref().as_ref(), min_key, max_key);
         }
     }
 
@@ -403,13 +315,8 @@ impl<KEY: Ord + Clone, VALUE: Clone> SymbolTable<KEY, VALUE> {
             result[level] = text;
         }
 
-        SymbolTable::<String, VALUE>::draw_node(node.left.deref(), position * 2, level + 1, result);
-        SymbolTable::<String, VALUE>::draw_node(
-            node.right.deref(),
-            position * 2 + 1,
-            level + 1,
-            result,
-        );
+        BST::<String, VALUE>::draw_node(node.left.deref(), position * 2, level + 1, result);
+        BST::<String, VALUE>::draw_node(node.right.deref(), position * 2 + 1, level + 1, result);
     }
 }
 
@@ -420,7 +327,7 @@ mod tests {
     #[test]
     fn draw_sequncial_index_tree() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         let keys = "A B C D E F G H I J K L M N O P Q".split(" ");
 
         for (position, key) in keys.enumerate() {
@@ -429,10 +336,10 @@ mod tests {
 
         // act
         let result = &mut Vec::new();
-        SymbolTable::<String, String>::draw_node(&st.root, 0, 0, result);
+        BST::<String, String>::draw_node(&st.root, 0, 0, result);
 
         // assert
-        assert_eq!(result.len(), 5);
+        assert_eq!(result.len(), 17);
 
         // print tree
         for line in result {
@@ -443,7 +350,7 @@ mod tests {
     #[test]
     fn draw_tree() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         for (position, key) in keys.enumerate() {
@@ -452,10 +359,10 @@ mod tests {
 
         // act
         let result = &mut Vec::new();
-        SymbolTable::<String, String>::draw_node(&st.root, 0, 0, result);
+        BST::<String, String>::draw_node(&st.root, 0, 0, result);
 
         // assert
-        assert_eq!(result.len(), 4);
+        assert_eq!(result.len(), 6);
 
         // print tree
         for line in result {
@@ -466,7 +373,7 @@ mod tests {
     #[test]
     fn symbol_table_iterate_keys_ordered() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -495,7 +402,7 @@ mod tests {
     #[test]
     fn symbol_table_iterate_keys_ordered_between_range() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -520,7 +427,7 @@ mod tests {
     #[test]
     fn allows_to_search_value_by_key() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -547,7 +454,7 @@ mod tests {
     #[test]
     fn find_key_by_position() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -565,7 +472,7 @@ mod tests {
     #[test]
     fn find_position_by_keys() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -583,7 +490,7 @@ mod tests {
     #[test]
     fn find_min_and_max_keys() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -599,7 +506,7 @@ mod tests {
     #[test]
     fn floor_can_find_lower_or_equal_key() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         let keys = "S O M E T H I N G T O F I N D".split(" ");
 
         // act
@@ -616,7 +523,7 @@ mod tests {
     #[test]
     fn ceiling_can_find_greater_or_equal_key() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -633,7 +540,7 @@ mod tests {
     #[test]
     fn delete_values_restore_symbol_table_to_empty() {
         // arrange
-        let st = &mut SymbolTable::<String, String>::new::<String, String>();
+        let st = &mut BST::<String, String>::new::<String, String>();
         st.put(String::from("test"), String::from("test"));
 
         // act
