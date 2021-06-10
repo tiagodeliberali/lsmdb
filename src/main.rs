@@ -1,9 +1,9 @@
 mod bst;
+mod red_black_bst;
 mod stack;
-mod symbol_table;
 
 use crate::bst::BST;
-use crate::symbol_table::SymbolTable;
+use crate::red_black_bst::RedBlackBST;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
 use std::time::Instant;
@@ -15,7 +15,7 @@ fn main() {
     let min_length = 1;
 
     let main_instant = Instant::now();
-    let st = &mut SymbolTable::<String, u32>::new::<String, u32>();
+    let st = &mut RedBlackBST::<String, u32>::new::<String, u32>();
 
     let file = File::open("data/leipzig1M.txt").expect("file not found");
     let reader = BufReader::new(file);
@@ -66,7 +66,10 @@ fn main() {
         "Elapsed time to read frequencies from symbol table: {:.2?}",
         read_st
     );
-    println!("average read word/s: {:.2?}", (1000_u128 * (count as u128) / read_st.as_millis()));
+    println!(
+        "average read word/s: {:.2?}",
+        (1000_u128 * (count as u128) / read_st.as_millis())
+    );
     println!("count words: {:.2?}", count);
     println!("nodes (dinsti nct words): {:.2?}", st.size());
     println!("Total time: {:.2?}", total);
