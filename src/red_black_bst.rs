@@ -28,14 +28,12 @@ impl<KEY: Ord, VALUE: Clone> Node<KEY, VALUE> {
 
 pub struct RedBlackBST<KEY: Ord + Clone, VALUE: Clone> {
     root: Option<Node<KEY, VALUE>>,
-    pub test: Vec<KEY>,
 }
 
 impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
     pub fn new<A: Ord + Clone, B: Clone>() -> RedBlackBST<A, B> {
         RedBlackBST {
             root: None,
-            test: Vec::new(),
         }
     }
 
