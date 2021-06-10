@@ -1,4 +1,4 @@
-use std::{ops::Deref, slice::Iter, usize};
+use std::{ops::Deref, usize};
 
 pub struct Node<KEY: Ord, VALUE: Clone> {
     pub key: KEY,
