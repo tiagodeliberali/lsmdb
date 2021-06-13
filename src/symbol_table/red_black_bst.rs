@@ -1,3 +1,4 @@
+use crate::symbol_table::ST;
 use std::{
     ops::{Deref, DerefMut},
     usize,
@@ -30,12 +31,6 @@ pub struct RedBlackBST<KEY: Ord + Clone, VALUE: Clone> {
 }
 
 impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
-    pub fn new<A: Ord + Clone, B: Clone>() -> RedBlackBST<A, B> {
-        RedBlackBST {
-            root: None,
-        }
-    }
-
     fn is_red(node: &Option<Node<KEY, VALUE>>) -> bool {
         if let Some(v) = node {
             v.is_red
@@ -95,15 +90,6 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
         return x;
     }
 
-    pub fn put(&mut self, key: KEY, value: VALUE) {
-        RedBlackBST::put_node(&mut self.root, key, value);
-
-        // root is always black
-        if let Some(node) = &mut self.root {
-            node.is_red = false;
-        }
-    }
-
     fn put_node(option_node: &mut Option<Node<KEY, VALUE>>, key: KEY, value: VALUE) {
         if option_node.is_none() {
             option_node.replace(Node::<KEY, VALUE>::new(key, value, 1, true));
@@ -146,21 +132,6 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
         }
     }
 
-    pub fn size(&self) -> usize {
-        match self.root.as_ref() {
-            Some(node) => node.size,
-            None => 0,
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.size() == 0
-    }
-
-    pub fn get(&self, key: &KEY) -> Option<VALUE> {
-        RedBlackBST::get_node(&self.root, key)
-    }
-
     fn get_node(node: &Option<Node<KEY, VALUE>>, key: &KEY) -> Option<VALUE> {
         if node.is_none() {
             return None;
@@ -173,18 +144,6 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
             std::cmp::Ordering::Greater => RedBlackBST::get_node(node.right.deref(), key),
             std::cmp::Ordering::Equal => Some(node.value.clone()),
         }
-    }
-
-    pub fn contains(&self, key: &KEY) -> bool {
-        self.get(key).is_some()
-    }
-
-    pub fn delete(&mut self, _key: KEY) {
-        // missing implementation
-    }
-
-    pub fn min(&self) -> Option<KEY> {
-        RedBlackBST::min_node(&self.root)
     }
 
     fn min_node(node: &Option<Node<KEY, VALUE>>) -> Option<KEY> {
@@ -201,10 +160,6 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
         RedBlackBST::min_node(&node.left)
     }
 
-    pub fn max(&self) -> Option<KEY> {
-        RedBlackBST::max_node(&self.root)
-    }
-
     fn max_node(node: &Option<Node<KEY, VALUE>>) -> Option<KEY> {
         if node.is_none() {
             return None;
@@ -217,10 +172,6 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
         }
 
         RedBlackBST::max_node(&node.right)
-    }
-
-    pub fn floor(&self, key: KEY) -> Option<KEY> {
-        RedBlackBST::floor_node(&self.root, key)
     }
 
     pub fn floor_node(node: &Option<Node<KEY, VALUE>>, key: KEY) -> Option<KEY> {
@@ -240,11 +191,7 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
         }
     }
 
-    pub fn ceiling(&self, key: KEY) -> Option<KEY> {
-        RedBlackBST::ceiling_node(&self.root, key)
-    }
-
-    pub fn ceiling_node(node: &Option<Node<KEY, VALUE>>, key: KEY) -> Option<KEY> {
+    fn ceiling_node(node: &Option<Node<KEY, VALUE>>, key: KEY) -> Option<KEY> {
         if node.is_none() {
             return None;
         }
@@ -261,14 +208,6 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
         }
     }
 
-    pub fn select(&self, position: usize) -> Option<KEY> {
-        if position >= self.size() {
-            return None;
-        }
-
-        RedBlackBST::select_node(&self.root, position)
-    }
-
     fn select_node(node: &Option<Node<KEY, VALUE>>, position: usize) -> Option<KEY> {
         let node = node.as_ref().unwrap();
         let left_count = RedBlackBST::get_size(&node.left);
@@ -280,10 +219,6 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
             }
             std::cmp::Ordering::Equal => Some(node.key.clone()),
         }
-    }
-
-    pub fn rank(&self, key: KEY) -> Option<usize> {
-        RedBlackBST::rank_node(&self.root, key, 0)
     }
 
     fn rank_node(node: &Option<Node<KEY, VALUE>>, key: KEY, position: usize) -> Option<usize> {
@@ -302,29 +237,6 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
             }
             std::cmp::Ordering::Equal => Some(position + left_count),
         }
-    }
-
-    pub fn keys(&self) -> Vec<KEY> {
-        let mut keys = Vec::new();
-
-        let min_key = self.min();
-        let max_key = self.max();
-
-        if min_key.is_none() || max_key.is_none() {
-            return keys;
-        }
-
-        let min_key = min_key.unwrap();
-        let max_key = max_key.unwrap();
-
-        RedBlackBST::keys_node(&mut keys, self.root.as_ref(), &min_key, &max_key);
-        return keys;
-    }
-
-    pub fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<KEY> {
-        let mut keys = Vec::new();
-        RedBlackBST::keys_node(&mut keys, self.root.as_ref(), &min_key, &max_key);
-        return keys;
     }
 
     fn keys_node(
@@ -410,6 +322,61 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
     }
 }
 
+impl<KEY: Ord + Clone, VALUE: Clone> ST<KEY, VALUE> for RedBlackBST<KEY, VALUE> {
+    fn new() -> RedBlackBST<KEY, VALUE> {
+        RedBlackBST { root: None }
+    }
+
+    fn put(&mut self, key: KEY, value: VALUE) {
+        RedBlackBST::put_node(&mut self.root, key, value);
+    }
+
+    fn size(&self) -> usize {
+        match self.root.as_ref() {
+            Some(node) => node.size,
+            None => 0,
+        }
+    }
+
+    fn get(&self, key: &KEY) -> Option<VALUE> {
+        RedBlackBST::get_node(&self.root, key)
+    }
+
+    fn min(&self) -> Option<KEY> {
+        RedBlackBST::min_node(&self.root)
+    }
+
+    fn max(&self) -> Option<KEY> {
+        RedBlackBST::max_node(&self.root)
+    }
+
+    fn floor(&self, key: KEY) -> Option<KEY> {
+        RedBlackBST::floor_node(&self.root, key)
+    }
+
+    fn ceiling(&self, key: KEY) -> Option<KEY> {
+        RedBlackBST::ceiling_node(&self.root, key)
+    }
+
+    fn select(&self, position: usize) -> Option<KEY> {
+        if position >= self.size() {
+            return None;
+        }
+
+        RedBlackBST::select_node(&self.root, position)
+    }
+
+    fn rank(&self, key: KEY) -> Option<usize> {
+        RedBlackBST::rank_node(&self.root, key, 0)
+    }
+
+    fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<KEY> {
+        let mut keys = Vec::new();
+        RedBlackBST::keys_node(&mut keys, self.root.as_ref(), &min_key, &max_key);
+        return keys;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -417,7 +384,7 @@ mod tests {
     #[test]
     fn draw_sequncial_index_tree() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         let keys = "A B C D E F G H I J K L M N O P Q".split(" ");
 
         for (position, key) in keys.enumerate() {
@@ -440,7 +407,7 @@ mod tests {
     #[test]
     fn draw_tree() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         for (position, key) in keys.enumerate() {
@@ -463,7 +430,7 @@ mod tests {
     #[test]
     fn symbol_table_iterate_keys_ordered() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -493,7 +460,7 @@ mod tests {
     #[test]
     fn symbol_table_iterate_keys_ordered_between_range() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -519,7 +486,7 @@ mod tests {
     #[test]
     fn allows_to_search_value_by_key() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -546,7 +513,7 @@ mod tests {
     #[test]
     fn find_key_by_position() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -564,7 +531,7 @@ mod tests {
     #[test]
     fn find_position_by_keys() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -582,7 +549,7 @@ mod tests {
     #[test]
     fn find_min_and_max_keys() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -598,7 +565,7 @@ mod tests {
     #[test]
     fn floor_can_find_lower_or_equal_key() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         let keys = "S O M E T H I N G T O F I N D".split(" ");
 
         // act
@@ -615,7 +582,7 @@ mod tests {
     #[test]
     fn ceiling_can_find_greater_or_equal_key() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         let keys = "S E A R C H E X A M P L E".split(" ");
 
         // act
@@ -632,7 +599,7 @@ mod tests {
     #[test]
     fn delete_values_restore_symbol_table_to_empty() {
         // arrange
-        let st = &mut RedBlackBST::<String, String>::new::<String, String>();
+        let st = &mut RedBlackBST::<String, String>::new();
         st.put(String::from("test"), String::from("test"));
 
         // act

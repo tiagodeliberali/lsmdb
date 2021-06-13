@@ -1,56 +1,33 @@
-mod bst;
-mod red_black_bst;
 mod stack;
+mod symbol_table;
 
-use crate::bst::BST;
-use crate::red_black_bst::RedBlackBST;
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
+use crate::symbol_table::bst::BST;
+use crate::symbol_table::frequency_counter::FrequencyCounter;
+use crate::symbol_table::red_black_bst::RedBlackBST;
+use crate::symbol_table::ST;
+
 use std::time::Instant;
 
 fn main() {
-    println!("let's build a trees!");
-    println!("--------------------\n");
+    let mut red_black: RedBlackBST<String, u64> = RedBlackBST::new();
+    instrument(&mut red_black, "Red Back BST", "data/leipzig1M.txt");
 
-    let min_length = 1;
+    let mut bst: BST<String, u64> = BST::new();
+    instrument(&mut bst, "BST", "data/leipzig1M.txt");
+}
+
+fn instrument<T: ST<String, u64>>(st: &mut T, name: &str, path: &str) {
+    println!("{}", name);
+    println!("-----------\n");
 
     let main_instant = Instant::now();
-    let st = &mut RedBlackBST::<String, u32>::new::<String, u32>();
 
-    let file = File::open("data/leipzig1M.txt").expect("file not found");
-    let reader = BufReader::new(file);
-    let mut count: u64 = 0;
-
-    for line in reader.lines() {
-        for word in line.unwrap().split(" ") {
-            let word = String::from(word);
-
-            if &word.len() < &min_length {
-                continue;
-            }
-            if !st.contains(&word) {
-                st.put(word.clone(), 1);
-            } else {
-                st.put(word.clone(), st.get(&word).unwrap() + 1);
-            }
-
-            count += 1;
-        }
-    }
+    let count = FrequencyCounter::build(st, path, 1);
 
     let load_st = main_instant.elapsed();
     let read_instant = Instant::now();
 
-    let mut max = String::new();
-
-    st.put(max.clone(), 0);
-
-    let keys = st.keys();
-    for word in keys {
-        if st.get(&word).unwrap() > st.get(&max).unwrap() {
-            max = word.clone();
-        }
-    }
+    let max = FrequencyCounter::find_max(st);
 
     println!("most used word is '{}': {}\n", max, st.get(&max).unwrap());
 
@@ -71,6 +48,7 @@ fn main() {
         (1000_u128 * (count as u128) / read_st.as_millis())
     );
     println!("count words: {:.2?}", count);
-    println!("nodes (dinsti nct words): {:.2?}", st.size());
+    println!("nodes (dinstinct words): {:.2?}", st.size());
     println!("Total time: {:.2?}", total);
+    println!();
 }
