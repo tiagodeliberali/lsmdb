@@ -4,7 +4,11 @@ use std::{
     usize,
 };
 
-pub struct Node<KEY: Ord, VALUE: Clone> {
+pub struct Node<KEY, VALUE>
+where
+    KEY: Ord,
+    VALUE: Clone,
+{
     pub key: KEY,
     pub value: VALUE,
     pub size: usize,
@@ -13,8 +17,12 @@ pub struct Node<KEY: Ord, VALUE: Clone> {
     pub is_red: bool,
 }
 
-impl<KEY: Ord, VALUE: Clone> Node<KEY, VALUE> {
-    pub fn new<A: Ord, B: Clone>(key: A, value: B, size: usize, is_red: bool) -> Node<A, B> {
+impl<KEY, VALUE> Node<KEY, VALUE>
+where
+    KEY: Ord,
+    VALUE: Clone,
+{
+    pub fn new(key: KEY, value: VALUE, size: usize, is_red: bool) -> Node<KEY, VALUE> {
         Node {
             key,
             value,
@@ -26,11 +34,19 @@ impl<KEY: Ord, VALUE: Clone> Node<KEY, VALUE> {
     }
 }
 
-pub struct RedBlackBST<KEY: Ord + Clone, VALUE: Clone> {
+pub struct RedBlackBST<KEY, VALUE>
+where
+    KEY: Ord + Clone,
+    VALUE: Clone,
+{
     root: Option<Node<KEY, VALUE>>,
 }
 
-impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
+impl<KEY, VALUE> RedBlackBST<KEY, VALUE>
+where
+    KEY: Ord + Clone,
+    VALUE: Clone,
+{
     fn is_red(node: &Option<Node<KEY, VALUE>>) -> bool {
         if let Some(v) = node {
             v.is_red
@@ -92,7 +108,7 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
 
     fn put_node(option_node: &mut Option<Node<KEY, VALUE>>, key: KEY, value: VALUE) {
         if option_node.is_none() {
-            option_node.replace(Node::<KEY, VALUE>::new(key, value, 1, true));
+            option_node.replace(Node::new(key, value, 1, true));
             return;
         }
 
@@ -322,7 +338,11 @@ impl<KEY: Ord + Clone, VALUE: Clone> RedBlackBST<KEY, VALUE> {
     }
 }
 
-impl<KEY: Ord + Clone, VALUE: Clone> ST<KEY, VALUE> for RedBlackBST<KEY, VALUE> {
+impl<KEY, VALUE> ST<KEY, VALUE> for RedBlackBST<KEY, VALUE>
+where
+    KEY: Ord + Clone,
+    VALUE: Clone,
+{
     fn new() -> RedBlackBST<KEY, VALUE> {
         RedBlackBST { root: None }
     }

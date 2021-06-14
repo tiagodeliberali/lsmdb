@@ -1,7 +1,11 @@
 use crate::symbol_table::ST;
 use std::{ops::Deref, usize};
 
-pub struct Node<KEY: Ord, VALUE: Clone> {
+pub struct Node<KEY, VALUE>
+where
+    KEY: Ord,
+    VALUE: Clone,
+{
     pub key: KEY,
     pub value: VALUE,
     pub size: usize,
@@ -9,7 +13,11 @@ pub struct Node<KEY: Ord, VALUE: Clone> {
     pub right: Box<Option<Node<KEY, VALUE>>>,
 }
 
-impl<KEY: Ord, VALUE: Clone> Node<KEY, VALUE> {
+impl<KEY, VALUE> Node<KEY, VALUE>
+where
+    KEY: Ord,
+    VALUE: Clone,
+{
     pub fn new<A: Ord, B: Clone>(key: A, value: B, size: usize) -> Node<A, B> {
         Node {
             key,
@@ -21,11 +29,19 @@ impl<KEY: Ord, VALUE: Clone> Node<KEY, VALUE> {
     }
 }
 
-pub struct BST<KEY: Ord + Clone, VALUE: Clone> {
+pub struct BST<KEY, VALUE>
+where
+    KEY: Ord + Clone,
+    VALUE: Clone,
+{
     root: Option<Node<KEY, VALUE>>,
 }
 
-impl<KEY: Ord + Clone, VALUE: Clone> BST<KEY, VALUE> {
+impl<KEY, VALUE> BST<KEY, VALUE>
+where
+    KEY: Ord + Clone,
+    VALUE: Clone,
+{
     fn put_node(node: &mut Option<Node<KEY, VALUE>>, key: KEY, value: VALUE) {
         if node.is_none() {
             node.replace(Node::<KEY, VALUE>::new(key, value, 1));
@@ -235,7 +251,11 @@ impl<KEY: Ord + Clone, VALUE: Clone> BST<KEY, VALUE> {
     }
 }
 
-impl<KEY: Ord + Clone, VALUE: Clone> ST<KEY, VALUE> for BST<KEY, VALUE> {
+impl<KEY, VALUE> ST<KEY, VALUE> for BST<KEY, VALUE>
+where
+    KEY: Ord + Clone,
+    VALUE: Clone,
+{
     fn new() -> BST<KEY, VALUE> {
         BST { root: None }
     }
