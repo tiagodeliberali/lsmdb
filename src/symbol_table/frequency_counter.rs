@@ -5,7 +5,7 @@ use std::io::{prelude::*, BufReader};
 pub struct FrequencyCounter {}
 
 impl FrequencyCounter {
-    pub fn build<T: ST<String, u64>>(st: &mut T, file_path: &str, min_length: usize) -> u64 {
+    pub fn build(st: &mut impl ST<String, u64>, file_path: &str, min_length: usize) -> u64 {
         let file = File::open(file_path).expect("file not found");
         let reader = BufReader::new(file);
         let mut count: u64 = 0;
@@ -30,7 +30,7 @@ impl FrequencyCounter {
         count
     }
 
-    pub fn find_max<T: ST<String, u64>>(st: &mut T) -> String {
+    pub fn find_max(st: &mut impl ST<String, u64>) -> String {
         let mut max = String::new();
 
         st.put(max.clone(), 0);

@@ -16,9 +16,9 @@ fn main() {
     instrument(&mut bst, "BST", "data/leipzig1M.txt");
 }
 
-fn instrument<T: ST<String, u64>>(st: &mut T, name: &str, path: &str) {
+fn instrument(st: &mut impl ST<String, u64>, name: &str, path: &str) {
     println!("{}", name);
-    println!("-----------\n");
+    println!("-----------");
 
     let main_instant = Instant::now();
 
@@ -29,7 +29,7 @@ fn instrument<T: ST<String, u64>>(st: &mut T, name: &str, path: &str) {
 
     let max = FrequencyCounter::find_max(st);
 
-    println!("most used word is '{}': {}\n", max, st.get(&max).unwrap());
+    println!("most used word is '{}': {}", max, st.get(&max).unwrap());
 
     let read_st = read_instant.elapsed();
     let total = main_instant.elapsed();
