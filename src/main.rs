@@ -2,8 +2,8 @@ mod stack;
 mod symbol_table;
 
 use crate::symbol_table::bst::BST;
-use crate::symbol_table::frequency_counter::FrequencyCounter;
 use crate::symbol_table::red_black_bst::RedBlackBST;
+use crate::symbol_table::test_client::frequency_counter::FrequencyCounter;
 use crate::symbol_table::ST;
 
 use std::time::Instant;

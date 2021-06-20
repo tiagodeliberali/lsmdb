@@ -1,6 +1,6 @@
 pub mod bst;
-pub mod frequency_counter;
 pub mod red_black_bst;
+pub mod test_client;
 
 pub trait ST<KEY: Ord + Clone, VALUE: Clone> {
     fn new() -> Self;

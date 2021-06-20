@@ -18,6 +18,7 @@ pub struct Stack<T> {
     root: Option<StackNode<T>>,
 }
 
+#[allow(dead_code)]
 impl<T> Stack<T> {
     pub fn new<S>() -> Stack<S> {
         Stack { root: None }
