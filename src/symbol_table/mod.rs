@@ -2,18 +2,18 @@ pub mod bst;
 pub mod red_black_bst;
 pub mod test_client;
 
-pub trait ST<KEY: Ord + Clone, VALUE: Clone> {
+pub trait ST<KEY: Ord, VALUE> {
     fn new() -> Self;
-    fn put(&mut self, key: KEY, value: VALUE);
+    fn put(&mut self, key: KEY, value: VALUE); // should receive ownership of the values to store
     fn size(&self) -> usize;
-    fn get(&self, key: &KEY) -> Option<VALUE>;
-    fn min(&self) -> Option<KEY>;
-    fn max(&self) -> Option<KEY>;
-    fn floor(&self, key: KEY) -> Option<KEY>;
-    fn ceiling(&self, key: KEY) -> Option<KEY>;
-    fn select(&self, position: usize) -> Option<KEY>;
-    fn rank(&self, key: KEY) -> Option<usize>;
-    fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<KEY>;
+    fn get(&self, key: &KEY) -> Option<&VALUE>;
+    fn min(&self) -> Option<&KEY>;
+    fn max(&self) -> Option<&KEY>;
+    fn floor(&self, key: &KEY) -> Option<&KEY>;
+    fn ceiling(&self, key: &KEY) -> Option<&KEY>;
+    fn select(&self, position: usize) -> Option<&KEY>;
+    fn rank(&self, key: &KEY) -> Option<usize>;
+    fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<&KEY>;
 
     fn is_empty(&self) -> bool {
         self.size() == 0
@@ -23,11 +23,11 @@ pub trait ST<KEY: Ord + Clone, VALUE: Clone> {
         self.get(key).is_some()
     }
 
-    fn delete(&mut self, _key: KEY) {
+    fn delete(&mut self, _key: &KEY) {
         // missing implementation
     }
 
-    fn keys(&self) -> Vec<KEY> {
+    fn keys(&self) -> Vec<&KEY> {
         let keys = Vec::new();
 
         let min_key = self.min();

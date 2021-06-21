@@ -4,7 +4,6 @@ use std::{ops::Deref, usize};
 pub struct Node<KEY, VALUE>
 where
     KEY: Ord,
-    VALUE: Clone,
 {
     pub key: KEY,
     pub value: VALUE,
@@ -16,9 +15,8 @@ where
 impl<KEY, VALUE> Node<KEY, VALUE>
 where
     KEY: Ord,
-    VALUE: Clone,
 {
-    pub fn new<A: Ord, B: Clone>(key: A, value: B, size: usize) -> Node<A, B> {
+    pub fn new<A: Ord, B>(key: A, value: B, size: usize) -> Node<A, B> {
         Node {
             key,
             value,
@@ -31,16 +29,14 @@ where
 
 pub struct BST<KEY, VALUE>
 where
-    KEY: Ord + Clone,
-    VALUE: Clone,
+    KEY: Ord,
 {
     root: Option<Node<KEY, VALUE>>,
 }
 
 impl<KEY, VALUE> BST<KEY, VALUE>
 where
-    KEY: Ord + Clone,
-    VALUE: Clone,
+    KEY: Ord,
 {
     fn put_node(node: &mut Option<Node<KEY, VALUE>>, key: KEY, value: VALUE) {
         if node.is_none() {
@@ -66,7 +62,7 @@ where
         }
     }
 
-    fn get_node(node: &Option<Node<KEY, VALUE>>, key: &KEY) -> Option<VALUE> {
+    fn get_node<'a>(node: &'a Option<Node<KEY, VALUE>>, key: &KEY) -> Option<&'a VALUE> {
         if node.is_none() {
             return None;
         }
@@ -76,11 +72,11 @@ where
         match key.cmp(&node.key) {
             std::cmp::Ordering::Less => BST::get_node(node.left.deref(), key),
             std::cmp::Ordering::Greater => BST::get_node(node.right.deref(), key),
-            std::cmp::Ordering::Equal => Some(node.value.clone()),
+            std::cmp::Ordering::Equal => Some(&node.value),
         }
     }
 
-    fn min_node(node: &Option<Node<KEY, VALUE>>) -> Option<KEY> {
+    fn min_node(node: &Option<Node<KEY, VALUE>>) -> Option<&KEY> {
         if node.is_none() {
             return None;
         }
@@ -88,13 +84,13 @@ where
         let node = node.as_ref().unwrap();
 
         if node.left.is_none() {
-            return Some(node.key.clone());
+            return Some(&node.key);
         }
 
         BST::min_node(&node.left)
     }
 
-    fn max_node(node: &Option<Node<KEY, VALUE>>) -> Option<KEY> {
+    fn max_node(node: &Option<Node<KEY, VALUE>>) -> Option<&KEY> {
         if node.is_none() {
             return None;
         }
@@ -102,13 +98,13 @@ where
         let node = node.as_ref().unwrap();
 
         if node.right.is_none() {
-            return Some(node.key.clone());
+            return Some(&node.key);
         }
 
         BST::max_node(&node.right)
     }
 
-    pub fn floor_node(node: &Option<Node<KEY, VALUE>>, key: KEY) -> Option<KEY> {
+    pub fn floor_node<'a>(node: &'a Option<Node<KEY, VALUE>>, key: &KEY) -> Option<&'a KEY> {
         if node.is_none() {
             return None;
         }
@@ -119,13 +115,13 @@ where
             std::cmp::Ordering::Less => BST::floor_node(node.left.deref(), key),
             std::cmp::Ordering::Greater => match BST::floor_node(node.right.deref(), key) {
                 Some(v) => Some(v),
-                None => Some(node.key.clone()),
+                None => Some(&node.key),
             },
-            std::cmp::Ordering::Equal => Some(node.key.clone()),
+            std::cmp::Ordering::Equal => Some(&node.key),
         }
     }
 
-    fn ceiling_node(node: &Option<Node<KEY, VALUE>>, key: KEY) -> Option<KEY> {
+    fn ceiling_node<'a>(node: &'a Option<Node<KEY, VALUE>>, key: &KEY) -> Option<&'a KEY> {
         if node.is_none() {
             return None;
         }
@@ -135,14 +131,14 @@ where
         match key.cmp(&node.key) {
             std::cmp::Ordering::Less => match BST::ceiling_node(node.left.deref(), key) {
                 Some(v) => Some(v),
-                None => Some(node.key.clone()),
+                None => Some(&node.key),
             },
             std::cmp::Ordering::Greater => BST::ceiling_node(node.right.deref(), key),
-            std::cmp::Ordering::Equal => Some(node.key.clone()),
+            std::cmp::Ordering::Equal => Some(&node.key),
         }
     }
 
-    fn select_node(node: &Option<Node<KEY, VALUE>>, position: usize) -> Option<KEY> {
+    fn select_node(node: &Option<Node<KEY, VALUE>>, position: usize) -> Option<&KEY> {
         let node = node.as_ref().unwrap();
         let left_count = BST::get_size(&node.left);
 
@@ -151,11 +147,11 @@ where
             std::cmp::Ordering::Greater => {
                 BST::select_node(node.right.deref(), position - left_count - 1)
             }
-            std::cmp::Ordering::Equal => Some(node.key.clone()),
+            std::cmp::Ordering::Equal => Some(&node.key),
         }
     }
 
-    fn rank_node(node: &Option<Node<KEY, VALUE>>, key: KEY, position: usize) -> Option<usize> {
+    fn rank_node(node: &Option<Node<KEY, VALUE>>, key: &KEY, position: usize) -> Option<usize> {
         if node.is_none() {
             return None;
         }
@@ -173,9 +169,9 @@ where
         }
     }
 
-    fn keys_node(
-        result: &mut Vec<KEY>,
-        node: Option<&Node<KEY, VALUE>>,
+    fn keys_node<'a>(
+        result: &mut Vec<&'a KEY>,
+        node: &'a Option<Node<KEY, VALUE>>,
         min_key: &KEY,
         max_key: &KEY,
     ) {
@@ -186,15 +182,15 @@ where
         let node = node.as_ref().unwrap();
 
         if &node.key > min_key {
-            BST::keys_node(result, node.left.deref().as_ref(), min_key, max_key);
+            BST::keys_node(result, &node.left.as_ref(), min_key, max_key);
         }
 
         if &node.key >= min_key && &node.key <= max_key {
-            result.push(node.key.clone());
+            result.push(&node.key);
         }
 
         if &node.key < max_key {
-            BST::keys_node(result, node.right.deref().as_ref(), min_key, max_key);
+            BST::keys_node(result, &node.right.as_ref(), min_key, max_key);
         }
     }
 
@@ -254,8 +250,7 @@ where
 
 impl<KEY, VALUE> ST<KEY, VALUE> for BST<KEY, VALUE>
 where
-    KEY: Ord + Clone,
-    VALUE: Clone,
+    KEY: Ord,
 {
     fn new() -> BST<KEY, VALUE> {
         BST { root: None }
@@ -272,27 +267,27 @@ where
         }
     }
 
-    fn get(&self, key: &KEY) -> Option<VALUE> {
+    fn get(&self, key: &KEY) -> Option<&VALUE> {
         BST::get_node(&self.root, key)
     }
 
-    fn min(&self) -> Option<KEY> {
+    fn min(&self) -> Option<&KEY> {
         BST::min_node(&self.root)
     }
 
-    fn max(&self) -> Option<KEY> {
+    fn max(&self) -> Option<&KEY> {
         BST::max_node(&self.root)
     }
 
-    fn floor(&self, key: KEY) -> Option<KEY> {
+    fn floor(&self, key: &KEY) -> Option<&KEY> {
         BST::floor_node(&self.root, key)
     }
 
-    fn ceiling(&self, key: KEY) -> Option<KEY> {
+    fn ceiling(&self, key: &KEY) -> Option<&KEY> {
         BST::ceiling_node(&self.root, key)
     }
 
-    fn select(&self, position: usize) -> Option<KEY> {
+    fn select(&self, position: usize) -> Option<&KEY> {
         if position >= self.size() {
             return None;
         }
@@ -300,13 +295,13 @@ where
         BST::select_node(&self.root, position)
     }
 
-    fn rank(&self, key: KEY) -> Option<usize> {
+    fn rank(&self, key: &KEY) -> Option<usize> {
         BST::rank_node(&self.root, key, 0)
     }
 
-    fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<KEY> {
+    fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<&KEY> {
         let mut keys = Vec::new();
-        BST::keys_node(&mut keys, self.root.as_ref(), &min_key, &max_key);
+        BST::keys_node(&mut keys, &self.root, &min_key, &max_key);
         return keys;
     }
 }

@@ -7,7 +7,6 @@ use std::{
 pub struct Node<KEY, VALUE>
 where
     KEY: Ord,
-    VALUE: Clone,
 {
     pub key: KEY,
     pub value: VALUE,
@@ -20,7 +19,6 @@ where
 impl<KEY, VALUE> Node<KEY, VALUE>
 where
     KEY: Ord,
-    VALUE: Clone,
 {
     pub fn new(key: KEY, value: VALUE, size: usize, is_red: bool) -> Node<KEY, VALUE> {
         Node {
@@ -36,16 +34,14 @@ where
 
 pub struct RedBlackBST<KEY, VALUE>
 where
-    KEY: Ord + Clone,
-    VALUE: Clone,
+    KEY: Ord,
 {
     root: Option<Node<KEY, VALUE>>,
 }
 
 impl<KEY, VALUE> RedBlackBST<KEY, VALUE>
 where
-    KEY: Ord + Clone,
-    VALUE: Clone,
+    KEY: Ord,
 {
     fn is_red(node: &Option<Node<KEY, VALUE>>) -> bool {
         if let Some(v) = node {
@@ -148,7 +144,7 @@ where
         }
     }
 
-    fn get_node(node: &Option<Node<KEY, VALUE>>, key: &KEY) -> Option<VALUE> {
+    fn get_node<'a>(node: &'a Option<Node<KEY, VALUE>>, key: &KEY) -> Option<&'a VALUE> {
         if node.is_none() {
             return None;
         }
@@ -158,11 +154,11 @@ where
         match key.cmp(&node.key) {
             std::cmp::Ordering::Less => RedBlackBST::get_node(node.left.deref(), key),
             std::cmp::Ordering::Greater => RedBlackBST::get_node(node.right.deref(), key),
-            std::cmp::Ordering::Equal => Some(node.value.clone()),
+            std::cmp::Ordering::Equal => Some(&node.value),
         }
     }
 
-    fn min_node(node: &Option<Node<KEY, VALUE>>) -> Option<KEY> {
+    fn min_node(node: &Option<Node<KEY, VALUE>>) -> Option<&KEY> {
         if node.is_none() {
             return None;
         }
@@ -170,13 +166,13 @@ where
         let node = node.as_ref().unwrap();
 
         if node.left.is_none() {
-            return Some(node.key.clone());
+            return Some(&node.key);
         }
 
         RedBlackBST::min_node(&node.left)
     }
 
-    fn max_node(node: &Option<Node<KEY, VALUE>>) -> Option<KEY> {
+    fn max_node(node: &Option<Node<KEY, VALUE>>) -> Option<&KEY> {
         if node.is_none() {
             return None;
         }
@@ -184,13 +180,13 @@ where
         let node = node.as_ref().unwrap();
 
         if node.right.is_none() {
-            return Some(node.key.clone());
+            return Some(&node.key);
         }
 
         RedBlackBST::max_node(&node.right)
     }
 
-    pub fn floor_node(node: &Option<Node<KEY, VALUE>>, key: KEY) -> Option<KEY> {
+    pub fn floor_node<'a>(node: &'a Option<Node<KEY, VALUE>>, key: &KEY) -> Option<&'a KEY> {
         if node.is_none() {
             return None;
         }
@@ -201,13 +197,13 @@ where
             std::cmp::Ordering::Less => RedBlackBST::floor_node(node.left.deref(), key),
             std::cmp::Ordering::Greater => match RedBlackBST::floor_node(node.right.deref(), key) {
                 Some(v) => Some(v),
-                None => Some(node.key.clone()),
+                None => Some(&node.key),
             },
-            std::cmp::Ordering::Equal => Some(node.key.clone()),
+            std::cmp::Ordering::Equal => Some(&node.key),
         }
     }
 
-    fn ceiling_node(node: &Option<Node<KEY, VALUE>>, key: KEY) -> Option<KEY> {
+    fn ceiling_node<'a>(node: &'a Option<Node<KEY, VALUE>>, key: &KEY) -> Option<&'a KEY> {
         if node.is_none() {
             return None;
         }
@@ -217,14 +213,14 @@ where
         match key.cmp(&node.key) {
             std::cmp::Ordering::Less => match RedBlackBST::ceiling_node(node.left.deref(), key) {
                 Some(v) => Some(v),
-                None => Some(node.key.clone()),
+                None => Some(&node.key),
             },
             std::cmp::Ordering::Greater => RedBlackBST::ceiling_node(node.right.deref(), key),
-            std::cmp::Ordering::Equal => Some(node.key.clone()),
+            std::cmp::Ordering::Equal => Some(&node.key),
         }
     }
 
-    fn select_node(node: &Option<Node<KEY, VALUE>>, position: usize) -> Option<KEY> {
+    fn select_node(node: &Option<Node<KEY, VALUE>>, position: usize) -> Option<&KEY> {
         let node = node.as_ref().unwrap();
         let left_count = RedBlackBST::get_size(&node.left);
 
@@ -233,11 +229,11 @@ where
             std::cmp::Ordering::Greater => {
                 RedBlackBST::select_node(node.right.deref(), position - left_count - 1)
             }
-            std::cmp::Ordering::Equal => Some(node.key.clone()),
+            std::cmp::Ordering::Equal => Some(&node.key),
         }
     }
 
-    fn rank_node(node: &Option<Node<KEY, VALUE>>, key: KEY, position: usize) -> Option<usize> {
+    fn rank_node(node: &Option<Node<KEY, VALUE>>, key: &KEY, position: usize) -> Option<usize> {
         if node.is_none() {
             return None;
         }
@@ -255,9 +251,9 @@ where
         }
     }
 
-    fn keys_node(
-        result: &mut Vec<KEY>,
-        node: Option<&Node<KEY, VALUE>>,
+    fn keys_node<'a>(
+        result: &mut Vec<&'a KEY>,
+        node: &'a Option<Node<KEY, VALUE>>,
         min_key: &KEY,
         max_key: &KEY,
     ) {
@@ -268,15 +264,15 @@ where
         let node = node.as_ref().unwrap();
 
         if &node.key > min_key {
-            RedBlackBST::keys_node(result, node.left.deref().as_ref(), min_key, max_key);
+            RedBlackBST::keys_node(result, &node.left.as_ref(), min_key, max_key);
         }
 
         if &node.key >= min_key && &node.key <= max_key {
-            result.push(node.key.clone());
+            result.push(&node.key);
         }
 
         if &node.key < max_key {
-            RedBlackBST::keys_node(result, node.right.deref().as_ref(), min_key, max_key);
+            RedBlackBST::keys_node(result, &node.right.as_ref(), min_key, max_key);
         }
     }
 
@@ -359,27 +355,27 @@ where
         }
     }
 
-    fn get(&self, key: &KEY) -> Option<VALUE> {
+    fn get(&self, key: &KEY) -> Option<&VALUE> {
         RedBlackBST::get_node(&self.root, key)
     }
 
-    fn min(&self) -> Option<KEY> {
+    fn min(&self) -> Option<&KEY> {
         RedBlackBST::min_node(&self.root)
     }
 
-    fn max(&self) -> Option<KEY> {
+    fn max(&self) -> Option<&KEY> {
         RedBlackBST::max_node(&self.root)
     }
 
-    fn floor(&self, key: KEY) -> Option<KEY> {
+    fn floor(&self, key: &KEY) -> Option<&KEY> {
         RedBlackBST::floor_node(&self.root, key)
     }
 
-    fn ceiling(&self, key: KEY) -> Option<KEY> {
+    fn ceiling(&self, key: &KEY) -> Option<&KEY> {
         RedBlackBST::ceiling_node(&self.root, key)
     }
 
-    fn select(&self, position: usize) -> Option<KEY> {
+    fn select(&self, position: usize) -> Option<&KEY> {
         if position >= self.size() {
             return None;
         }
@@ -387,13 +383,13 @@ where
         RedBlackBST::select_node(&self.root, position)
     }
 
-    fn rank(&self, key: KEY) -> Option<usize> {
+    fn rank(&self, key: &KEY) -> Option<usize> {
         RedBlackBST::rank_node(&self.root, key, 0)
     }
 
-    fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<KEY> {
+    fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<&KEY> {
         let mut keys = Vec::new();
-        RedBlackBST::keys_node(&mut keys, self.root.as_ref(), &min_key, &max_key);
+        RedBlackBST::keys_node(&mut keys, &self.root, &min_key, &max_key);
         return keys;
     }
 }
