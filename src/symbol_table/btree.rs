@@ -29,50 +29,46 @@ where
         self.root.len()
     }
 
-    fn get(&self, key: &KEY) -> Option<VALUE> {
-        if let Some(v) = self.root.get(key) {
-            return Some(v.clone());
-        }
-
-        return None
+    fn get(&self, key: &KEY) -> Option<&VALUE> {
+        self.root.get(key)
     }
 
-    fn min(&self) -> Option<KEY> {
+    fn min(&self) -> Option<&KEY> {
         if let Some((k, _)) = self.root.first_key_value() {
-            return Some(k.clone());
+            return Some(k);
         }
 
         return None
     }
 
-    fn max(&self) -> Option<KEY> {
+    fn max(&self) -> Option<&KEY> {
         if let Some((k, _)) = self.root.last_key_value() {
-            return Some(k.clone());
+            return Some(k);
         }
 
         return None
     }
 
-    fn floor(&self, key: KEY) -> Option<KEY> {
+    fn floor(&self, key: &KEY) -> Option<&KEY> {
         None
     }
 
-    fn ceiling(&self, key: KEY) -> Option<KEY> {
+    fn ceiling(&self, key: &KEY) -> Option<&KEY> {
         None
     }
 
-    fn select(&self, position: usize) -> Option<KEY> {
+    fn select(&self, position: usize) -> Option<&KEY> {
         None
     }
 
-    fn rank(&self, key: KEY) -> Option<usize> {
+    fn rank(&self, key: &KEY) -> Option<usize> {
         None
     }
 
-    fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<KEY> {
+    fn keys_in_range(&self, min_key: &KEY, max_key: &KEY) -> Vec<&KEY> {
         let mut keys = Vec::new();
         for (key, _) in self.root.range((Included(min_key), Included(max_key))) {
-            keys.push(key.clone());
+            keys.push(key);
         }
         return keys;
     }
