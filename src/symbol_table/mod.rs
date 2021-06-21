@@ -1,6 +1,7 @@
 pub mod bst;
 pub mod red_black_bst;
 pub mod test_client;
+pub mod btree;
 
 pub trait ST<KEY: Ord, VALUE> {
     fn new() -> Self;

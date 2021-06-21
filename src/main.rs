@@ -1,8 +1,11 @@
+#![feature(map_first_last)]
+
 mod stack;
 mod symbol_table;
 
 use crate::symbol_table::bst::BST;
 use crate::symbol_table::red_black_bst::RedBlackBST;
+use crate::symbol_table::btree::BTree;
 use crate::symbol_table::test_client::frequency_counter::FrequencyCounter;
 use crate::symbol_table::ST;
 
@@ -14,6 +17,9 @@ fn main() {
 
     let mut bst: BST<String, u64> = BST::new();
     instrument(&mut bst, "BST", "data/leipzig1M.txt");
+
+    let mut btree: BTree<String, u64> = BTree::new();
+    instrument(&mut btree, "BTree", "data/leipzig1M.txt");
 }
 
 fn instrument(st: &mut impl ST<String, u64>, name: &str, path: &str) {
